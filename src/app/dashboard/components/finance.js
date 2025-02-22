@@ -66,11 +66,14 @@ export default function Finance() {
 
   // Função para processar o pagamento via Stripe
   const handleStripePayment = async () => {
-    if (!depositAmount || isNaN(depositAmount)) {
+    const depositValue = parseFloat(depositAmount);
+
+    if (isNaN(depositValue) || depositValue <= 0) {
       alert("Informe um valor válido para depósito");
       return;
     }
-    const amountInCents = Math.round(Number(depositAmount) * 100);
+
+    const amountInCents = Math.round(depositValue * 100);
 
     try {
       const response = await fetch(
@@ -82,10 +85,11 @@ export default function Finance() {
             amount: amountInCents,
             currency: "gbp",
             coupon: couponCode,
-            userId: user.uid,
+            userId: user ? user.uid : null,
           }),
         }
       );
+
       const data = await response.json();
       if (data.error) {
         console.error("Erro na função do Stripe:", data.error);
