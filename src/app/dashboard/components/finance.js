@@ -13,8 +13,8 @@ import {
 import app from "@/lib/firebase";
 import { useAuth } from "@/lib/protectRoute";
 
-// Carrega o Stripe com a sua Publishable Key
-const stripePromise = loadStripe("pk_test_51QvPr7DWzdFGLvwkpxG1Dy6w4dsixEh5JSyUuMgENz0h4Z6kif0W11gvYN2ca8HPH5Cp2TWOpl73Ei8DknEDkU5400U7mKEupx");
+// Carrega o Stripe com a chave pública do ambiente
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 export default function Finance() {
   const db = getFirestore(app);

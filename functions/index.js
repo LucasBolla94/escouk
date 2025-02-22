@@ -29,7 +29,7 @@ app.post('/create-checkout-session', async (req, res) => {
       payment_method_types: ['card'],
       line_items: [{
         price_data: {
-          currency: 'usd', // Define a moeda (ex.: usd, brl)
+          currency: 'gbp', // Define a moeda (ex.: usd, brl)
           product_data: {
             name: 'Test Product', // Nome do produto
           },
