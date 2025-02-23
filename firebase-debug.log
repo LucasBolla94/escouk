@@ -1,0 +1,21 @@
+[debug] [2025-02-23T02:16:56.934Z] ----------------------------------------------------------------------
+[debug] [2025-02-23T02:16:56.936Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\lucas\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2025-02-23T02:16:56.937Z] CLI Version:   13.31.2
+[debug] [2025-02-23T02:16:56.937Z] Platform:      win32
+[debug] [2025-02-23T02:16:56.937Z] Node Version:  v22.14.0
+[debug] [2025-02-23T02:16:56.937Z] Time:          Sun Feb 23 2025 02:16:56 GMT+0000 (Horário do Meridiano de Greenwich)
+[debug] [2025-02-23T02:16:56.937Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-02-23T02:16:57.098Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-02-23T02:16:57.098Z] > authorizing via signed-in user (lucasbolla.uk@gmail.com)
+[debug] [2025-02-23T02:16:57.099Z] [iam] checking project escorts-uk for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2025-02-23T02:16:57.099Z] Checked if tokens are valid: false, expires at: 1740277732377
+[debug] [2025-02-23T02:16:57.099Z] Checked if tokens are valid: false, expires at: 1740277732377
+[debug] [2025-02-23T02:16:57.100Z] > refreshing access token with scopes: []
+[debug] [2025-02-23T02:16:57.101Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-02-23T02:16:57.101Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-02-23T02:16:57.257Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-02-23T02:16:57.257Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-02-23T02:16:57.262Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/escorts-uk:testIamPermissions [none]
+[debug] [2025-02-23T02:16:57.262Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/escorts-uk:testIamPermissions x-goog-quota-user=projects/escorts-uk
+[debug] [2025-02-23T02:16:57.262Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/escorts-uk:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
