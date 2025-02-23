@@ -88,7 +88,8 @@ app.post('/create-checkout-session', async (req, res) => {
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: 'https://87.106.103.140/dashboard',
+      // Alteramos a URL de sucesso para redirecionar para o endereço especificado
+      success_url: 'https://cityswapuk.com/sucess',
       cancel_url: 'https://87.106.103.140/dashboard',
       metadata: {
         userId: userId || 'defaultUser',

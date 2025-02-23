@@ -10,7 +10,7 @@ export default function SuccessPage() {
   useEffect(() => {
     const processPayment = async () => {
       try {
-        // Faz a requisição para o backend para atualizar o saldo do usuário
+        // Requisição para o backend que atualiza o saldo do usuário.
         const response = await fetch("/api/update-wallet", {
           method: "POST",
           headers: {
@@ -26,7 +26,7 @@ export default function SuccessPage() {
       } catch (error) {
         console.error("Erro na requisição:", error);
       } finally {
-        // Aguarda 3 segundos antes de redirecionar
+        // Aguarda 3 segundos antes de redirecionar para o dashboard.
         setTimeout(() => {
           router.push("/dashboard");
         }, 3000);
