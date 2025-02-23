@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "ESCORTUK",
+  title: "ESCORTUK uk",
   description: "Plataforma profissional para serviços de acompanhantes, inspirada no VivaStreet.",
 };
 
