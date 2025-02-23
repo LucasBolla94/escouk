@@ -17,7 +17,7 @@ if (!admin.apps.length) {
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // O replace transforma os caracteres de nova linha "\n" para o formato correto
+      // Converte as quebras de linha escapadas para quebras reais
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     }),
   });
@@ -25,15 +25,16 @@ if (!admin.apps.length) {
 
 /*
  * Função POST: Atualiza o saldo (balance) do usuário.
- * O endpoint espera receber um JSON com os seguintes campos:
- * - userId: o identificador do usuário (por exemplo, o email ou id do usuário)
- * - amount: o valor a ser incrementado no saldo
+ * Espera receber um JSON com:
+ * - userId: identificador do usuário (pode ser o email ou id)
+ * - amount: valor a ser incrementado no saldo
  */
 export async function POST(req) {
   try {
     // Extrai os dados enviados no corpo da requisição
     const { userId, amount } = await req.json();
 
+    // Verifica se os dados foram enviados corretamente
     if (!userId || !amount) {
       return NextResponse.json({ error: "Parâmetros inválidos" }, { status: 400 });
     }
@@ -41,14 +42,19 @@ export async function POST(req) {
     // Referência para o documento do usuário na coleção "users"
     const userRef = admin.firestore().collection("users").doc(userId);
 
-    // Atualiza o campo "balance", incrementando o valor especificado
+    // Tenta atualizar o campo "balance" com o valor fornecido
     await userRef.update({
       balance: admin.firestore.FieldValue.increment(amount),
     });
 
+    // Se tudo correr bem, retorna sucesso
     return NextResponse.json({ success: true });
   } catch (error) {
+    // Exibe erro detalhado no console para facilitar o debug
     console.error("Erro ao atualizar saldo:", error);
-    return NextResponse.json({ error: "Erro ao atualizar saldo" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Erro ao atualizar saldo" },
+      { status: 500 }
+    );
   }
 }
