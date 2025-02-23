@@ -80,11 +80,11 @@ export default function Finance() {
 
     try {
       // Prepara os dados para enviar ao endpoint da sua função
-      // Aqui estamos garantindo que o cupom seja tratado (trim para remover espaços)
+      // Aqui garantimos que o cupom seja tratado (removendo espaços) e que enviamos a moeda e o valor
       const payload = {
         amount: amountInCents,
-        currency: "GBP", // Use moeda em letras maiúsculas conforme recomendação do Stripe
-        coupon: couponCode.trim() || "nenhum", // Se não houver cupom, envia "nenhum"
+        currency: "GBP", // Use a moeda em letras maiúsculas conforme recomendação do Stripe
+        coupon: couponCode.trim() || "",
         userId: user ? user.uid : null,
       };
 
@@ -149,22 +149,13 @@ export default function Finance() {
       <div className="mt-6 p-4 border rounded-lg bg-gray-50">
         <h3 className="text-xl font-semibold mb-2">Depósito</h3>
         <div className="flex space-x-2 mb-2">
-          <button
-            onClick={() => setDepositAmount("5")}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
-          >
+          <button onClick={() => setDepositAmount("5")} className="px-4 py-2 bg-blue-500 text-white rounded">
             £5,00
           </button>
-          <button
-            onClick={() => setDepositAmount("10")}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
-          >
+          <button onClick={() => setDepositAmount("10")} className="px-4 py-2 bg-blue-500 text-white rounded">
             £10,00
           </button>
-          <button
-            onClick={() => setDepositAmount("30")}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
-          >
+          <button onClick={() => setDepositAmount("30")} className="px-4 py-2 bg-blue-500 text-white rounded">
             £30,00
           </button>
         </div>
@@ -190,10 +181,7 @@ export default function Finance() {
       </div>
 
       <div className="mt-6">
-        <button
-          onClick={handleStripePayment}
-          className="w-full py-3 bg-green-600 text-white rounded-lg text-lg"
-        >
+        <button onClick={handleStripePayment} className="w-full py-3 bg-green-600 text-white rounded-lg text-lg">
           Pagar Agora
         </button>
         <p className="text-center text-sm text-gray-600 mt-2">
