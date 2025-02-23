@@ -24,38 +24,31 @@ if (!admin.apps.length) {
 }
 
 /*
- * Função POST: Atualiza o saldo (wallet) do usuário.
- * Neste exemplo, o email do usuário e o valor a ser incrementado estão fixos.
- * Em um cenário real, você pode extrair essas informações do corpo da requisição ou do token de autenticação.
+ * Função POST: Atualiza o saldo (balance) do usuário.
+ * O endpoint espera receber um JSON com os seguintes campos:
+ * - userId: o identificador do usuário (por exemplo, o email ou id do usuário)
+ * - amount: o valor a ser incrementado no saldo
  */
 export async function POST(req) {
   try {
-    // Exemplo fixo: em uma aplicação real, recupere esses dados do request ou da autenticação
-    const userEmail = "usuario@email.com";
-    const amount = 100;
+    // Extrai os dados enviados no corpo da requisição
+    const { userId, amount } = await req.json();
 
-    if (!userEmail) {
-      return NextResponse.json(
-        { error: "Usuário não autenticado" },
-        { status: 401 }
-      );
+    if (!userId || !amount) {
+      return NextResponse.json({ error: "Parâmetros inválidos" }, { status: 400 });
     }
 
     // Referência para o documento do usuário na coleção "users"
-    const userRef = admin.firestore().collection("users").doc(userEmail);
+    const userRef = admin.firestore().collection("users").doc(userId);
 
-    // Atualiza o campo "wallet", incrementando o valor especificado
+    // Atualiza o campo "balance", incrementando o valor especificado
     await userRef.update({
-      wallet: admin.firestore.FieldValue.increment(amount),
+      balance: admin.firestore.FieldValue.increment(amount),
     });
 
-    // Retorna uma resposta JSON de sucesso
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Erro ao atualizar saldo:", error);
-    return NextResponse.json(
-      { error: "Erro ao atualizar saldo" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erro ao atualizar saldo" }, { status: 500 });
   }
 }
