@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 import app from "@/lib/firebase"; // Certifique-se de que Firebase está sendo inicializado corretamente
 
 export default function SuccessPage() {
@@ -10,9 +11,12 @@ export default function SuccessPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
-  const auth = getAuth(app); // Obtém a instância correta do Firebase Authentication
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  // Verifica se o usuário está autenticado e obtém o token antes de processar o pagamento
+  // Simulação do valor pago no Stripe (substitua isso pelo valor real)
+  const valorPagoNoStripe = 10; 
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -31,16 +35,24 @@ export default function SuccessPage() {
       }
     });
 
-    return () => unsubscribe(); // Garante que a verificação de autenticação seja removida quando o componente desmontar
+    return () => unsubscribe();
   }, [auth]);
 
-  // Envia a requisição para atualizar o saldo quando o token estiver disponível
   useEffect(() => {
     if (!token) return;
 
     const processPayment = async () => {
       try {
-        const amount = 100;
+        const currencyDocRef = doc(db, "currency", "credit");
+        const currencyDocSnap = await getDoc(currencyDocRef);
+
+        if (!currencyDocSnap.exists()) {
+          throw new Error("Configuração de moeda não encontrada.");
+        }
+
+        const creditValue = currencyDocSnap.data().value;
+        const amount = creditValue * valorPagoNoStripe;
+
         console.log("🔄 Enviando requisição com token...");
 
         const response = await fetch("/api/update-wallet", {
@@ -72,7 +84,7 @@ export default function SuccessPage() {
     };
 
     processPayment();
-  }, [token, router]);
+  }, [token, router, db]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
