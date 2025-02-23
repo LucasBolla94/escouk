@@ -1,50 +1,76 @@
-import { NextResponse } from "next/server";
-import admin from "firebase-admin";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getAuth } from "firebase/auth";
 
-// Inicializa o Firebase Admin SDK
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    }),
-  });
-}
+export default function SuccessPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const auth = getAuth();
 
-export async function POST(req) {
-  try {
-    // Obtém o token de autenticação do cabeçalho da requisição
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Token não fornecido." }, { status: 401 });
-    }
-    const idToken = authHeader.split("Bearer ")[1];
+  useEffect(() => {
+    const processPayment = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error("Usuário não autenticado.");
+        }
+        const token = await user.getIdToken(); // Obtém o token correto do Firebase Auth
+        const amount = 100;
 
-    // Verifica o token e obtém os dados do usuário
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const userId = decodedToken.uid;
+        console.log("🔄 Enviando requisição com token...");
 
-    // Obtém o valor a ser incrementado do corpo da requisição
-    const { amount } = await req.json();
-    if (typeof amount !== "number") {
-      return NextResponse.json({ error: "Valor inválido." }, { status: 400 });
-    }
+        const response = await fetch("/api/update-wallet", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Agora enviando corretamente
+          },
+          body: JSON.stringify({ amount }),
+        });
 
-    // Referência ao documento do usuário no Firestore
-    const userRef = admin.firestore().collection("users").doc(userId);
+        const data = await response.json();
+        console.log("📩 Resposta da API:", data);
 
-    // Atualiza o campo 'balance' incrementando o valor especificado
-    await userRef.set(
-      {
-        balance: admin.firestore.FieldValue.increment(amount),
-      },
-      { merge: true }
-    );
+        if (!response.ok) {
+          throw new Error(data.error || "Erro ao atualizar saldo.");
+        }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Erro ao atualizar saldo:", error);
-    return NextResponse.json({ error: "Erro ao atualizar saldo." }, { status: 500 });
-  }
+        console.log("✅ Saldo atualizado com sucesso!");
+      } catch (error) {
+        console.error("❌ Erro na requisição:", error.message);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 3000);
+      }
+    };
+
+    processPayment();
+  }, [router, auth]);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+        <h2 className="text-2xl font-semibold text-gray-800">
+          {error ? "Erro no Pagamento" : "Pagamento Concluído!"}
+        </h2>
+        <p className="text-gray-600 mt-2">
+          {error ? error : "Processando seu saldo..."}
+        </p>
+
+        {loading && (
+          <div className="mt-4 flex justify-center">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <p className="text-green-600 mt-4">Redirecionando para o painel...</p>
+        )}
+      </div>
+    </div>
+  );
 }
