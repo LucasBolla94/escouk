@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, getDoc, collection, query, where } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import app from "@/lib/firebase"; // Certifique-se de que o Firebase está sendo inicializado corretamente
 
 export default function SuccessPage() {
@@ -12,7 +12,7 @@ export default function SuccessPage() {
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
   const [coupon, setCoupon] = useState("");
-  const [discount, setDiscount] = useState(0);
+  const [bonusPercentage, setBonusPercentage] = useState(0);
   const [valorPagoNoStripe, setValorPagoNoStripe] = useState(10); // Valor inicial pago no Stripe
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -58,11 +58,9 @@ export default function SuccessPage() {
       }
 
       const couponData = querySnapshot.docs[0].data();
-      const bonus = couponData.bonus; // Supondo que 'bonus' seja um número representando a porcentagem de desconto
+      const bonus = couponData.value; // Supondo que 'value' seja um número representando a porcentagem de bônus
 
-      const desconto = (bonus / 100) * valorPagoNoStripe;
-      setDiscount(desconto);
-      setValorPagoNoStripe(valorPagoNoStripe - desconto);
+      setBonusPercentage(bonus);
       setError(null); // Limpa qualquer erro anterior
     } catch (error) {
       console.error("❌ Erro ao verificar o cupom:", error.message);
@@ -83,7 +81,12 @@ export default function SuccessPage() {
         }
 
         const creditValue = currencyDocSnap.data().value;
-        const amount = creditValue * valorPagoNoStripe;
+        let amount = creditValue * valorPagoNoStripe;
+
+        if (bonusPercentage > 0) {
+          const bonusAmount = (bonusPercentage / 100) * amount;
+          amount += bonusAmount;
+        }
 
         console.log("🔄 Enviando requisição com token...");
 
@@ -116,7 +119,7 @@ export default function SuccessPage() {
     };
 
     processPayment();
-  }, [token, router, db, valorPagoNoStripe]);
+  }, [token, router, db, valorPagoNoStripe, bonusPercentage]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -144,9 +147,9 @@ export default function SuccessPage() {
           </button>
         </div>
 
-        {discount > 0 && (
+        {bonusPercentage > 0 && (
           <p className="text-green-600 mt-4">
-            Cupom aplicado! Você recebeu um desconto de {discount.toFixed(2)}.
+            Cupom aplicado! Você receberá um bônus de {bonusPercentage}% em seu crédito.
           </p>
         )}
 
