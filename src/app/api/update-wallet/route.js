@@ -25,16 +25,17 @@ if (!admin.apps.length) {
 
 /*
  * Função POST: Atualiza o saldo (balance) do usuário.
- * Espera receber um JSON com:
- * - userId: identificador do usuário (pode ser o email ou id)
+ * Espera receber um JSON com os seguintes campos:
+ * - userId: identificador do usuário (por exemplo, email ou id)
  * - amount: valor a ser incrementado no saldo
+ *
+ * Utilizamos `set` com merge:true para atualizar o campo balance,
+ * criando o documento caso ele não exista.
  */
 export async function POST(req) {
   try {
-    // Extrai os dados enviados no corpo da requisição
     const { userId, amount } = await req.json();
 
-    // Verifica se os dados foram enviados corretamente
     if (!userId || !amount) {
       return NextResponse.json({ error: "Parâmetros inválidos" }, { status: 400 });
     }
@@ -42,19 +43,17 @@ export async function POST(req) {
     // Referência para o documento do usuário na coleção "users"
     const userRef = admin.firestore().collection("users").doc(userId);
 
-    // Tenta atualizar o campo "balance" com o valor fornecido
-    await userRef.update({
-      balance: admin.firestore.FieldValue.increment(amount),
-    });
+    // Atualiza ou cria o campo "balance" incrementando o valor fornecido
+    await userRef.set(
+      {
+        balance: admin.firestore.FieldValue.increment(amount),
+      },
+      { merge: true }
+    );
 
-    // Se tudo correr bem, retorna sucesso
     return NextResponse.json({ success: true });
   } catch (error) {
-    // Exibe erro detalhado no console para facilitar o debug
     console.error("Erro ao atualizar saldo:", error);
-    return NextResponse.json(
-      { error: error.message || "Erro ao atualizar saldo" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || "Erro ao atualizar saldo" }, { status: 500 });
   }
 }
