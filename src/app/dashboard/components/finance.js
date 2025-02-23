@@ -13,7 +13,7 @@ import {
 import app from "@/lib/firebase";
 import { useAuth } from "@/lib/protectRoute";
 
-// Carrega o Stripe com a chave pública do ambiente
+// Carrega o Stripe com a chave pública definida nas variáveis de ambiente
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 export default function Finance() {
@@ -27,7 +27,7 @@ export default function Finance() {
   const [depositAmount, setDepositAmount] = useState("");
   const [couponCode, setCouponCode] = useState("");
 
-  // Função para buscar transações
+  // Função para buscar transações do usuário
   const fetchTransactions = async () => {
     if (!user) return;
     try {
@@ -43,7 +43,7 @@ export default function Finance() {
     }
   };
 
-  // Função para buscar o saldo do usuário
+  // Função para buscar o saldo atual do usuário
   const fetchUserBalance = async () => {
     if (!user) return;
     try {
@@ -58,6 +58,7 @@ export default function Finance() {
     }
   };
 
+  // Ao carregar ou quando o usuário muda, busca transações e saldo
   useEffect(() => {
     if (user) {
       Promise.all([fetchTransactions(), fetchUserBalance()]).then(() => setLoading(false));
@@ -66,6 +67,7 @@ export default function Finance() {
 
   // Função para processar o pagamento via Stripe
   const handleStripePayment = async () => {
+    // Converte o valor do depósito para número
     const depositValue = parseFloat(depositAmount);
 
     if (isNaN(depositValue) || depositValue <= 0) {
@@ -73,20 +75,25 @@ export default function Finance() {
       return;
     }
 
+    // Converte o valor para centavos (requerido pelo Stripe)
     const amountInCents = Math.round(depositValue * 100);
 
     try {
+      // Prepara os dados para enviar ao endpoint da sua função
+      // Aqui estamos garantindo que o cupom seja tratado (trim para remover espaços)
+      const payload = {
+        amount: amountInCents,
+        currency: "GBP", // Use moeda em letras maiúsculas conforme recomendação do Stripe
+        coupon: couponCode.trim() || "nenhum", // Se não houver cupom, envia "nenhum"
+        userId: user ? user.uid : null,
+      };
+
       const response = await fetch(
         "https://us-central1-escorts-uk.cloudfunctions.net/api/create-checkout-session",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: amountInCents,
-            currency: "gbp",
-            coupon: couponCode,
-            userId: user ? user.uid : null,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
@@ -98,7 +105,7 @@ export default function Finance() {
       }
       console.log("Checkout Session criada com sucesso:", data.id);
 
-      // Redireciona o usuário para o Stripe Checkout
+      // Redireciona para a sessão de checkout do Stripe
       const stripe = await stripePromise;
       const { error } = await stripe.redirectToCheckout({ sessionId: data.id });
       if (error) {
