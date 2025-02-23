@@ -24,19 +24,33 @@ if (!admin.apps.length) {
 }
 
 /*
- * Função POST: Atualiza o saldo (balance) do usuário.
- * Espera receber um JSON com os seguintes campos:
- * - userId: identificador do usuário (por exemplo, email ou id)
+ * Função POST: Atualiza o saldo (balance) do usuário logado.
+ * O endpoint espera que o token de autenticação do Firebase seja enviado no cabeçalho "Authorization" 
+ * no formato "Bearer <token>".
+ * O corpo da requisição deve conter:
  * - amount: valor a ser incrementado no saldo
  *
- * Utilizamos `set` com merge:true para atualizar o campo balance,
- * criando o documento caso ele não exista.
+ * O ID do usuário (userId) será extraído do token verificado.
  */
 export async function POST(req) {
   try {
-    const { userId, amount } = await req.json();
+    // Obtém o token de autenticação do cabeçalho "Authorization"
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Token de autenticação ausente ou inválido" },
+        { status: 401 }
+      );
+    }
+    const token = authHeader.split("Bearer ")[1];
 
-    if (!userId || !amount) {
+    // Verifica e decodifica o token usando o Firebase Admin
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const userId = decodedToken.uid;
+
+    // Extrai o valor a ser incrementado do corpo da requisição
+    const { amount } = await req.json();
+    if (!amount) {
       return NextResponse.json({ error: "Parâmetros inválidos" }, { status: 400 });
     }
 
@@ -54,6 +68,9 @@ export async function POST(req) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Erro ao atualizar saldo:", error);
-    return NextResponse.json({ error: error.message || "Erro ao atualizar saldo" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Erro ao atualizar saldo" },
+      { status: 500 }
+    );
   }
 }
